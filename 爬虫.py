@@ -57,3 +57,4 @@ filename = '1234.html'
 with open(filename, 'w', encoding='utf-8') as tem:
     tem.write(result)
 print(filename, '保存成功')
+response.close()
