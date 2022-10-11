@@ -45,7 +45,7 @@ headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36',
 }
 
-response = requests.get('https://www.zhihu.com/hot', cookies=cookies, headers=headers)
+#response = requests.get('https://www.zhihu.com/hot', cookies=cookies, headers=headers)
 
 response = requests.get(url=url, cookies=cookies,headers=headers)
 response.encoding = 'utf-8'
