@@ -1,14 +1,19 @@
 #from urllib import response
 #from bs4 import BeautifulSoup
 #url = 'https://www.zhihu.com/creator/hot-question/hot/0/hour'
+from pyexpat import model
 import requests
 import re
+import csv
+from pandas.io.excel import ExcelWriter
+import pandas as pd
+
 
 url = 'https://www.zhihu.com/api/v4/creators/rank/hot?domain=0&period=hour'
 offset = 20
 url2 = f'https://www.zhihu.com/api/v4/creators/rank/hot?domain=0&limit=20&offset={offset}&period=hour'
 
-
+#参数
 cookies = {
     '_zap': 'f3cf59ab-0720-4f1f-95c7-71f1d634745b',
     'd_c0': 'AFDTyOf1rhWPTl8mcGV63yaFc5lXO5R0N6o=|1665298657',
@@ -49,7 +54,7 @@ headers = {
 #response = requests.get('https://www.zhihu.com/hot', cookies=cookies, headers=headers)
 
 response = requests.get(url=url, cookies=cookies,headers=headers)
-
+#请求内容（第一页）
 response.encoding = 'utf-8'
 page_text = response.text
 #print(response.text)
@@ -69,13 +74,43 @@ while offset<=200:
     #     tem.write(result2)
 else:    
     print('读取成功')
+#请求剩下的下拉内容
 
-obj1 = re.compile(r'"url":"(?P<链接>.*?)","created":.*?"title":"(?P<标题>.*?)","highlight_title".*?"new_pv":(?P<浏览增量>.*?),"new_pv_7_days.*?"new_follow_num":(?P<关注增量>.*?),"new_follow_num_7_days":0,"new_answer_num":(?P<回答增量>.*?),"new_answer_num_7_days":0,"new_upvote_num":(?P<赞同增量>.*?),"new_upvote_num_7_days":0,"pv":(?P<总浏览>.*?),"follow_num":(?P<总关注>.*?),"answer_num":(?P<总回答>.*?),"upvote_num":(?P<总赞同>.*?),"pv_incr_rate":"0.00%".*?"text":""}},',re.S)
-#obj = re.compile(r'[0-9]+')
+
+obj1 = re.compile(r'"url":"(?P<链接>.*?)","created":.*?"title":"(?P<标题>.*?)","highlight_title".*?"new_pv":(?P<浏览增量>.*?),"new_pv_7_days.*?"new_follow_num":(?P<关注增量>.*?),"new_follow_num_7_days":0,"new_answer_num":(?P<回答增量>.*?),"new_answer_num_7_days":0,"new_upvote_num":(?P<赞同增量>.*?),"new_upvote_num_7_days":0,"pv":(?P<总浏览>.*?),"follow_num":(?P<总关注>.*?),"answer_num":(?P<总回答>.*?),"upvote_num":(?P<总赞同>.*?),"pv_incr_rate":"0.00%".*?"score":(?P<热力值>.*?),"score_level".*?"text":""}},',re.S)
+#正则处理数据
 it = obj1.finditer(result,re.S)
 
-for i in it:
-    print (i.group("标题"))
+# for i in it:
+#     print (i.group("总赞同"))
 response.close()
 response2.close()
+
+
+f = open("知乎热榜.csv",mode="w")
+csvwriter = csv.writer(f)
+for i in it:
+    dic = i.groupdict()
+    csvwriter.writerow(dic.values())
+
+df = pd.read_csv('知乎热榜.csv',header=None,names=['链接','标题','浏览增量','关注增量','回答增量','赞同增量','总浏览','总关注','总回答','总赞同','热力值'])    
+df.to_csv('知乎热榜.csv',index=False)
+#加表头
+
+
+with ExcelWriter('知乎热榜.xlsx') as ew:
+    #转换为excel文件
+	pd.read_csv("知乎热榜.csv").to_excel(ew, sheet_name="1", index=False)
+
+from openpyxl import load_workbook
+
+path = '知乎热榜.xlsx'
+
+wb = load_workbook(path)
+ws = wb.active
+ws.column_dimensions['B'].width = 102
+
+wb.save('知乎小时热榜.xlsx')
+
+
 print("close")
