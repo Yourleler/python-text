@@ -1,8 +1,7 @@
 #from urllib import response
 import requests
-#url = 'https://www.zhihu.com/creator/hot-question/hot/0/hour'
-url = 'https://www.zhihu.com/api/v4/creators/rank/hot?domain=0&period=hour'
-url2 = 'https://www.zhihu.com/api/v4/creators/rank/hot?domain=0&limit=20&offset=20&period=hour'
+url = 'https://www.zhihu.com/creator/hot-question/hot/0/hour'
+#url = 'https://www.zhihu.com/api/v4/creators/rank/hot?domain=0&period=hour'
 #url = 'https://www.zhihu.com/hot'
 
 cookies = {
@@ -50,19 +49,14 @@ headers = {
 #response = requests.get('https://www.zhihu.com/hot', cookies=cookies, headers=headers)
 
 response = requests.get(url=url, cookies=cookies,headers=headers)
-response2 = requests.get(url=url2, cookies=cookies,headers=headers)
 response.encoding = 'utf-8'
-response2.encoding = 'utf-8'
 page_text = response.text
 
 print(response.text)
 result = response.text
-result2 = response2.text
 filename = '123456.html'
 with open(filename, 'w', encoding='utf-8') as tem:
     tem.write(result)
-with open(filename, 'a', encoding='utf-8') as tem:
-    tem.write(result2)
 print(filename, '保存成功')
 response.close()
 print("close")
