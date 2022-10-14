@@ -1,13 +1,23 @@
 #from urllib import response
 #from bs4 import BeautifulSoup
 #url = 'https://www.zhihu.com/creator/hot-question/hot/0/hour'
+from http.client import ImproperConnectionState
 from pyexpat import model
 import requests
 import re
 import csv
 from pandas.io.excel import ExcelWriter
 import pandas as pd
-
+import time
+import sys
+import os
+import datetime
+def time_():
+    while True:
+        os.system("scrapy crawl 知乎热榜")
+        time.sleep(240)
+        time_()
+#定时模块
 
 url = 'https://www.zhihu.com/api/v4/creators/rank/hot?domain=0&period=hour'
 offset = 20
@@ -92,6 +102,7 @@ csvwriter = csv.writer(f)
 for i in it:
     dic = i.groupdict()
     csvwriter.writerow(dic.values())
+f.close()#一定要关啊啊啊啊，修了三个小时才发现md
 
 df = pd.read_csv('知乎热榜.csv',header=None,names=['链接','标题','浏览增量','关注增量','回答增量','赞同增量','总浏览','总关注','总回答','总赞同','热力值'])    
 df.to_csv('知乎热榜.csv',index=False)
@@ -105,12 +116,16 @@ with ExcelWriter('知乎热榜.xlsx') as ew:
 from openpyxl import load_workbook
 
 path = '知乎热榜.xlsx'
-
+path2 = '知乎热榜.csv'
+#修改列宽
 wb = load_workbook(path)
 ws = wb.active
 ws.column_dimensions['B'].width = 102
 
 wb.save('知乎小时热榜.xlsx')
-
-
+os.remove(path)
+os.remove(path2)
+print("知乎小时热榜.xlsx已生成，此表为小时总榜，共约200条,位置在知乎热榜.py同一根目录下")
+print("输入任意退出")
+o = input()
 print("close")
