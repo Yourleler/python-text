@@ -1,8 +1,6 @@
 1.txt
 知乎热榜.spec
-知乎小时热榜.xlsx
 bilbil关注列表.spec
-bilibili共同关注列表.xlsx
 bilibili关注列表.csv
 bilibili关注列表.xlsx
 bl.html
@@ -43,3 +41,6 @@ build/知乎热榜/localpycs/pyimod04_pywin32.pyc
 build/知乎热榜/localpycs/struct.pyc
 bl.html
 test.py
+沙袋.html
+知乎小时热榜.xlsx
+沙袋教学快讯.xlsx

@@ -16,7 +16,7 @@ import sys
 import os
 import datetime
 
-
+print("此代码可找出您输入的两个uid代表的账户的共同关注，同时会在同一表格的另两个工作簿中显示两者的关注列表")
 print("请输入两人uid,用空格空开")
 uid,uid2 = map(int,input().split())
 
@@ -139,6 +139,7 @@ while jp<=8:
     a = a+1
     result2 = response2.text
     result=result+result2
+    txt1 = result
     response2.close()
 else:
     print(f"{uid}加载完毕")
@@ -155,6 +156,7 @@ while jp2<=8:
     b=b+1
     result4 = response4.text
     result3=result3+result4
+    txt2 = result3
     response4.close()
 
 else:
@@ -163,7 +165,7 @@ else:
 result = result+result3
 # filename = 'bl.html'
 # with open(filename, 'w', encoding='utf-8-sig') as tem:
-#     tem.write(result)
+#     tem.write(result3)
 # print(filename, '保存成功')
 print("二者数据载入成功")
 obj1 = re.compile(r'"mid":(.*?),"attribute"',re.S)
@@ -171,6 +173,7 @@ list1 = obj1.findall(result)
 list1 = list(map(int,list1))
 
 same = []
+result_ = ''
 list1.sort()
 #print (list1)
 n = len(list1)
@@ -192,7 +195,7 @@ else:
 j = len(same)
 
 if j == 0:
-    print("没有发现两者有共同关注呢，目前来说某个蒙古上单限制每人只能获取前100个关注，可能这两个有，但是我们看不到吧（也可能是）")
+    print("没有发现两者有共同关注呢，目前来说某个蒙古上单限制每人只能获取前100个关注，可能这两个有，但是我们看不到吧（也可能是某方开了隐私保护吧）")
 
 
 if j != 0:
@@ -212,10 +215,13 @@ if j != 0:
         response_0.close()
         response_1.close()
         response_2.close()
+        
     else: l = 1
+obj = re.compile(r'"mid":(?P<uid1>.*?),"attribute".*?"uname":"(?P<昵称1>.*?)","face":.*?"sign":"(?P<签名>.*?)","face_nft":.*?desc":"(?P<头衔>.*?)"}.*?nft_icon":""},')
 obj2 = re.compile(r'"mid":(?P<uid>.*?),"name":"(?P<昵称>.*?)","sex":"(?P<性别>.*?)","face":"(?P<头像图片链接>.*?)","face_nft".*?"sign":".*?",".*?"level":(?P<等级>.*?),"jointime.*?"following":(?P<关注数>.*?),"whisper".*?"follower":(?P<粉丝>.*?)}}.*?"archive":{"view":(?P<播放数>.*?)},"article":{"view":(?P<阅读数>.*?)},"likes":(?P<获赞>.*?)}}',re.S)
 it = obj2.finditer(result_,re.S)
-
+it1 = obj.finditer(txt1,re.S)
+it2 = obj.finditer(txt2,re.S)
 
 f =open("bilibili共同关注列表.csv",mode="w",encoding='utf-8')
 csvwriter = csv.writer(f)   
@@ -223,17 +229,56 @@ for i in it:
     dic = i.groupdict()
     csvwriter.writerow(dic.values())
 f.close()
+
+
+f1=open("bilibili关注列表1.csv",mode="w",encoding='utf-8')
+csvwriter = csv.writer(f1)   
+for i1 in it1:
+    dic = i1.groupdict()
+    csvwriter.writerow(dic.values())
+f1.close()
+
+f2=open("bilibili关注列表2.csv",mode="w",encoding='utf-8')
+csvwriter = csv.writer(f2)   
+for i2 in it2:
+    dic = i2.groupdict()
+    csvwriter.writerow(dic.values())
+f2.close()
+
+
 df = pd.read_csv('bilibili共同关注列表.csv',header=None,names=['uid','昵称','性别','头像图片链接','等级','关注数','粉丝','播放数','阅读数','获赞'])    
 df.to_csv('bilibili共同关注列表.csv',index=False)
-     #加表头
+
+df1 = pd.read_csv('bilibili关注列表1.csv',header=None,names=['uid','昵称','签名','头衔'])    
+df1.to_csv('bilibili关注列表1.csv',index=False)
+
+df2 = pd.read_csv('bilibili关注列表2.csv',header=None,names=['uid','昵称','签名','头衔'])    
+df2.to_csv('bilibili关注列表2.csv',index=False)
+#加表头
 with ExcelWriter('bilibili共同关注列表.xlsx') as ew:
  #转换为excel文件
-    pd.read_csv("bilibili共同关注列表.csv").to_excel(ew, sheet_name="1",index=False,engine = "python")
+    pd.read_csv("bilibili共同关注列表.csv").to_excel(ew, sheet_name="共同关注",index=False,engine = "python")
+    pd.read_csv("bilibili关注列表1.csv").to_excel(ew, sheet_name=f"前者{uid}",index=False,engine = "python")
+    pd.read_csv("bilibili关注列表2.csv").to_excel(ew, sheet_name=f"后者{uid2}",index=False,engine = "python")
 from openpyxl import load_workbook
 
 path = 'bilibili共同关注列表.csv'
+path1 = 'bilibili关注列表1.csv'
+path2 = 'bilibili关注列表2.csv'
+path3 = 'bilibili共同关注列表.xlsx'
 
 
+#修改列宽
+wb = load_workbook(path3)
+ws = wb[wb.sheetnames[1]]
+ws.column_dimensions['B'].width = 26
+ws.column_dimensions['C'].width = 130
+ws.column_dimensions['D'].width = 35
+ws = wb[wb.sheetnames[2]]
+ws.column_dimensions['B'].width = 26
+ws.column_dimensions['C'].width = 130
+ws.column_dimensions['D'].width = 35
+wb.save('bilibili共同关注列表及二者分别关注列表.xlsx')
 
 #print(list1)
 #uid_list = obj1.finditer(result)
@@ -249,11 +294,12 @@ path = 'bilibili共同关注列表.csv'
 
 response.close()
 response3.close()
-response_0.close()
-response_1.close()
-response_2.close()
 
 os.remove(path)
+os.remove(path1)
+os.remove(path2)
+os.remove(path3)
+
 print("若两者有共同关注，bilibili共同关注列表已生成，位置在bilibili关注列表.py同一根目录下")
 print("按任意键退出")
 o = input()
