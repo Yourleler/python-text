@@ -14,6 +14,7 @@ import datetime
 import schedule
 from openpyxl import load_workbook
 
+print("不在学校，挂梯子也打不开新闻网只能换这个了qaq，网址 https://www.bkjx.sdu.edu.cn/index/jxkx.htm")
 def run():
     url = 'https://www.bkjx.sdu.edu.cn/index/jxkx.htm'
     u = ''

@@ -13,6 +13,15 @@ import sys
 import os
 import datetime
 import schedule
+import collections 
+import numpy as np 
+import jieba 
+import wordcloud 
+from PIL import Image
+import matplotlib.pyplot as plt 
+from matplotlib import colors
+
+print("如果运行时表格无内容，请重试几次或删除原有表格，否则请检查网络问题，请确保根目录 中有名为bj.jpg的图片，以及黑体字库（sinhei.ttf），否则词云无法正常显示")
 def run():
     #定时模块
     url = 'https://www.zhihu.com/api/v4/creators/rank/hot?domain=0&period=hour'
@@ -88,6 +97,9 @@ def run():
     #正则处理数据
     it = obj1.finditer(result,re.S)
 
+
+
+
     # for i in it:
     #     print (i.group("总赞同"))
     response.close()
@@ -98,7 +110,22 @@ def run():
     for i in it:
         dic = i.groupdict()
         csvwriter.writerow(dic.values())
+        a = ''
+        b = ''
+        c = ''
+        a = i.group("热门分类")
+        b = i.group("热门分类1")
+        c = i.group("热门分类2")
+        a = a + b + c
+        f1 = open("词频.txt",mode ="a")
+        f1.write(a)
+        f1.close()
+        #print(a)
     f.close()#一定要关啊啊啊啊，修了三个小时才发现md
+
+    # f1 = open("词频.txt",mode ="w")
+    # f1.write(a)
+    # f1.close()
 
     df = pd.read_csv('知乎热榜.csv',header=None,names=['链接','标题','热门分类（标签1）','热门分类（标签2）','热门分类（标签3）','浏览增量','关注增量','回答增量','赞同增量','总浏览','总关注','总回答','总赞同','热力值'])    
     df.to_csv('知乎热榜.csv',index=False)
@@ -120,16 +147,82 @@ def run():
     ws.column_dimensions['C'].width = 18
     ws.column_dimensions['D'].width = 22
     ws.column_dimensions['E'].width = 22
-
-
     wb.save('知乎小时热榜.xlsx')
-    os.remove(path)
-    os.remove(path2) 
 
-    print("知乎小时热榜.xlsx已生成，此表为小时总榜，共约200条,位置在知乎热榜.py同一根目录下")
+
+    datalist = []
+    fn = open('词频.txt', 'rt', encoding='utf-8')  # 打开文件
+    string_data = fn.read()  # 读出整个文件
+    fn.close()  # 关闭文件
+    pattern = re.compile(u'\t|\n|\.|-|:|;|\)|\(|\?|"')  # 定义正则表达式匹配模式
+    string_data = re.sub(pattern, '', string_data)  # 将符合模式的字符去除
+
+    # 文本分词
+    seg_list_exact = jieba.cut(string_data, cut_all=False)  # 精确模式分词
+    object_list = []
+
+    remove_words = [u'的', u'，', u'和', u'是', u'随着', u'对于', u'对', u'等', u'能', u'都', u'。', u' ', u'、', u'中', u'在', u'了',
+                    u'通常', u'如果', u'我们', u'需要']  # 自定义去除词库
+
+    for word in seg_list_exact:  # 循环读出每个分词
+
+        if word not in remove_words:  # 如果不在去除词库中
+            if len(word) > 1:  # 筛选关键词长度
+                #print(word, len(word))
+
+                object_list.append(word)  # 分词追加到列表
+
+    # 词频统计
+    word_counts = collections.Counter(object_list)  # 对分词做词频统计
+    word_counts_top = word_counts.most_common(200)  # 获取前200最高频的词
+
+    for words in word_counts_top:
+        data = [words[0], words[-1]]
+        datalist.append(data)
+
+    # 建立颜色数组
+
+    color_list = ['#0000FF', '#CC0033', '#333333']
+
+    # 调用
+    colormap = colors.ListedColormap(color_list)
+
+    # 词频展示
+    mask = np.array(Image.open('bj.jpg'))  # 定义词频背景
+    wc = wordcloud.WordCloud(
+        font_path='simhei.ttf',  # 设置字体格式
+        mask=mask,  # 设置背景图
+        max_words=200,  # 最多显示词数
+        max_font_size=100,  # 字体最大值
+        background_color='white',
+        colormap=colormap,
+        random_state=18
+    )
+
+    wc.generate_from_frequencies(word_counts)  # 从字典生成词云
+    image_colors = wordcloud.ImageColorGenerator(mask) # 从背景图建立颜色方案
+    wc.recolor(color_func=image_colors) # 将词云颜色设置为背景图方案
+    
+    wc.to_file('知乎热点分析.jpg')
+
+    plt.imshow(wc)  # 显示词云
+    plt.axis('off')  # 关闭坐标轴
+    plt.show()  # 显示图像
+
+
+
+
+
+
+    print("知乎小时热榜.xlsx以及热点分析词云图已生成，此表为小时总榜，共约200条,位置在知乎热榜.py同一根目录下")
 
 run()
-
+path = '知乎热榜.xlsx'
+path2 = '知乎热榜.csv'
+path3 = '词频.txt'
+os.remove(path)
+os.remove(path2) 
+os.remove(path3) 
 
 print("每小时刷新一次哟，如果不需要可直接关闭此窗口或键入任意关闭")
 schedule.every(60).minutes.do(run)
