@@ -20,7 +20,6 @@ import wordcloud
 from PIL import Image
 import matplotlib.pyplot as plt 
 from matplotlib import colors
-
 print("如果运行时表格无内容，请重试几次或删除原有表格，否则请检查网络问题，请确保根目录 中有名为bj.jpg的图片，以及黑体字库（sinhei.ttf），否则词云无法正常显示")
 def run():
     #定时模块
@@ -83,6 +82,7 @@ def run():
         url2 = f'https://www.zhihu.com/api/v4/creators/rank/hot?domain=0&limit=20&offset={offset}&period=hour'
         offset=offset+20
         response2 = requests.get(url=url2, cookies=cookies,headers=headers)
+        response2.encoding='utf-8'
         result2 = response2.text
         result = result+result2
         response2.close() 
@@ -105,7 +105,7 @@ def run():
     response.close()
 
 
-    f = open("知乎热榜.csv",mode="w")
+    f = open("知乎热榜.csv",mode="w",encoding='utf-8')
     csvwriter = csv.writer(f)
     for i in it:
         dic = i.groupdict()
@@ -117,7 +117,7 @@ def run():
         b = i.group("热门分类1")
         c = i.group("热门分类2")
         a = a + b + c
-        f1 = open("词频.txt",mode ="a")
+        f1 = open("词频.txt",mode ="a",encoding='utf-8')
         f1.write(a)
         f1.close()
         #print(a)

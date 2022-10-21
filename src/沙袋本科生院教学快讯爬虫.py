@@ -1,4 +1,5 @@
 from dataclasses import replace
+from encodings.utf_8 import encode
 from http.client import ImproperConnectionState
 from importlib.resources import path
 from pyexpat import model
@@ -74,7 +75,7 @@ def run():
     #     print (i.group("标题"))
     # response.close()
 
-    f = open("沙袋教学快讯.csv",mode="w")
+    f = open("沙袋教学快讯.csv",mode="w",encoding='utf-8')
     csvwriter = csv.writer(f)
     for i in it:
         dic = i.groupdict()
